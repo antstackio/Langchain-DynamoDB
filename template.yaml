@@ -1,0 +1,73 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Langchain-DynamoDB
+
+  Sample SAM Template for Langchain-DynamoDB
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+
+Resources:
+  MyHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: Prod
+      CorsConfiguration:
+        AllowMethods:
+          - '*'
+        AllowOrigins:
+          - '*'
+        AllowHeaders:
+          - '*'
+
+  ConvTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: SessionId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: SessionId
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+
+  ChatFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: chat/
+      Handler: app.lambda_handler
+      Runtime: python3.10
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConvTable
+        - AmazonSSMReadOnlyAccess
+      Environment:
+        Variables:
+          MESSAGE_HISTORY_TABLE: !Ref ConvTable
+      Layers:
+        - !Ref ChatLayer
+      Events:
+        chat:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref MyHttpApi
+            Path: /chat
+            Method: post
+
+  ChatLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      ContentUri: chat/
+      CompatibleRuntimes:
+        - python3.10
+    Metadata:
+      BuildMethod: python3.10
+
+Outputs:
+  MyHttpApi:
+    Description: "API Gateway endpoint URL for Prod stage for MyHttpApi function"
+    Value: !Sub "https://${MyHttpApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/chat"
