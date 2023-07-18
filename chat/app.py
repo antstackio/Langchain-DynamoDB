@@ -48,7 +48,7 @@ tools = [Tool(
 )]
 
 def chat_func(session_id, question):
-    chat_history = DynamoDBChatMessageHistory(table_name='conversation-store', session_id=session_id)
+    chat_history = DynamoDBChatMessageHistory(table_name=conv_table, session_id=session_id)
     memory = ConversationBufferMemory(
     memory_key="chat_history",
     return_messages=True
@@ -61,6 +61,7 @@ def chat_func(session_id, question):
     llm=chat,
     verbose=False,
     memory=memory,
+    handle_parsing_errors=True,
     )
 
     sys_msg = """You are a chatbot for a Serverless company AntStack and strictly answer the question based on the context below, and if the question can't be answered based on the context, say \"I'm sorry I cannot answer the question, contact connect@antstack.com\"
@@ -72,8 +73,10 @@ def chat_func(session_id, question):
     )
     conversational_agent.agent.llm_chain.prompt = prompt
 
-    return conversational_agent.run(question)
+    msg = conversational_agent.run(question)
     
+    return msg
+
 def lambda_handler(event, context):
 
     body = json.loads(event['body'])
