@@ -1,5 +1,6 @@
 import boto3
 import json
+import os
 import pinecone
 from langchain.vectorstores import Pinecone
 from langchain.embeddings.openai import OpenAIEmbeddings
@@ -18,6 +19,7 @@ ssm = boto3.client('ssm')
 OPENAI_API_KEY = ssm.get_parameter(Name='OPENAI_API_KEY', WithDecryption=True)['Parameter']['Value']
 pinecone_key = ssm.get_parameter(Name='PINECONE_KEY', WithDecryption=True)['Parameter']['Value']
 pinecone_env = ssm.get_parameter(Name='PINECONE_ENV', WithDecryption=True)['Parameter']['Value']
+conv_table = os.environ['MESSAGE_HISTORY_TABLE']
 
 pinecone.init(api_key=pinecone_key, environment=pinecone_env)
 index = pinecone.Index('openai')
