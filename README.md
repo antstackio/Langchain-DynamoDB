@@ -1,5 +1,7 @@
 # Langchain-DynamoDB
 
+Blog: https://www.antstack.com/blog/open-ai-dynamo-db-build-a-conversational-chatbot-with-langchain/
+
 This project contains source code and supporting files for a serverless application that you can deploy with the SAM CLI. It includes the following files and folders.
 
 - chat - Code for the application's Lambda function.
